@@ -12,8 +12,7 @@ const ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=' + app_id)
 
 ws.on('open', () => {
     console.log('Conectado à Deriv!');
-    ws.send(JSON.stringify({ "authorize": "pat_ade1ff1598ec00f0a5b8d250718b866c1bb6a84174887b74a110651addd1b014" }));
-
+    ​ws.send(JSON.stringify({ "authorize": process.env.DERIV_TOKEN }));
 ws.on('message', (data) => {
     console.log('Resposta da Deriv:', JSON.parse(data));
 });
