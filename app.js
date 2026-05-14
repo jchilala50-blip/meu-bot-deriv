@@ -1,13 +1,20 @@
 const WebSocket = require('ws');
-const app_id = '1089'; // Este é o ID de teste da Deriv. Depois você pode trocar pelo seu.
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Mantém o Render feliz criando um servidor web simples
+app.get('/', (req, res) => res.send('Bot da Deriv Ativo!'));
+app.listen(port, () => console.log(`Servidor na porta ${port}`));
+
+const app_id = '1089';
 const ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=' + app_id);
 
-ws.on('open', function open() {
-    console.log('Conexão estabelecida com a Deriv!');
-    // Autenticação básica ou pedido de saldo
+ws.on('open', () => {
+    console.log('Conectado à Deriv!');
     ws.send(JSON.stringify({ "balance": 1, "subscribe": 1 }));
 });
 
-ws.on('message', function incoming(data) {
-    console.log('Dados recebidos da Deriv:', JSON.parse(data));
+ws.on('message', (data) => {
+    console.log('Resposta da Deriv:', JSON.parse(data));
 });
