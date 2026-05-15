@@ -3,105 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kubiko Trader</title> <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #121212; 
-            color: #ffffff; 
-            text-align: center; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            height: 100vh;
-        }
-        .header {
-            position: absolute;
-            top: 20px;
-            width: 100%;
-        }
-        .header h1 {
-            color: #ff4444;
-            font-size: 2.5em;
-            letter-spacing: 2px;
-            margin: 0;
-        }
-        .card { 
-            background: #1e1e1e; 
-            padding: 40px; 
-            border-radius: 20px; 
-            max-width: 380px; 
-            margin: auto; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
-            border: 1px solid #333;
-        }
-        .btn-deriv { 
-            background: #ff4444; 
-            color: white; 
-            padding: 15px; 
-            border: none; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            width: 100%; 
-            font-size: 18px;
-            transition: 0.3s;
-        }
-        .btn-deriv:hover {
-            background: #cc3333;
-            transform: translateY(-2px);
-        }
-        #info { margin-top: 25px; color: #00ff00; font-weight: 500; }
-        p { color: #aaa; margin-bottom: 30px; }
+    <title>Kubiko Trader</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b0b0b; color: #ffffff; text-align: center; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { background: #161616; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #222; width: 320px; }
+        h1 { color: #ff4444; font-size: 28px; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase; }
+        p { color: #888; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+        .btn-login { background: #ff4444; color: white; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3); }
+        .btn-login:hover { background: #cc3333; transform: scale(1.02); }
+        #status { margin-top: 25px; font-size: 14px; font-weight: bold; padding: 10px; border-radius: 8px; }
+        .success { color: #00ff00; background: rgba(0, 255, 0, 0.1); }
+        .error { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+        #saldo { margin-top: 15px; font-size: 20px; color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div class="header">
+    <div class="container">
         <h1>KUBIKO TRADER</h1>
-    </div>
-
-    <div class="card">
-        <p>Acesse sua conta Deriv com segurança para começar a operar.</p>
-        <button class="btn-deriv" onclick="fazerLogin()">ENTRAR COM DERIV</button>
-        <div id="info">Aguardando conexão...</div>
+        <p>Acesse sua conta Deriv para operar com segurança via API oficial.</p>
+        
+        <button class="btn-login" id="loginBtn" onclick="iniciarLogin()">ENTRAR COM DERIV</button>
+        
+        <div id="status">Aguardando login...</div>
+        <div id="saldo"></div>
     </div>
 
     <script>
-        // SUBSTITUA PELO NÚMERO QUE APARECER NO PAINEL DA DERIV
-        const APP_ID = 'SEU_APP_ID_AQUI'; 
+        // O ID do seu aplicativo que você registrou
+        const MEU_APP_ID = '33h1f6Rj6AYZdwVVuiBzP'; 
 
-        function fazerLogin() {
-            if (APP_ID === 'SEU_APP_ID_AQUI') {
-                alert("Por favor, coloque o seu App ID no código antes de prosseguir.");
-                return;
-            }
-            // Manda para o login oficial
-            const url = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=pt`;
-            window.location.href = url;
+        function iniciarLogin() {
+            // Manda o cliente para o ambiente seguro da Deriv
+            window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${MEU_APP_ID}&l=pt`;
         }
 
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token1'); 
-
+            const token = urlParams.get('token1');
+            
             if (token) {
-                document.getElementById('info').innerText = "Autenticando na Kubiko Trader...";
-                conectarComToken(token);
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerText = "Autenticando...";
+                statusDiv.className = "success";
+                document.getElementById('loginBtn').style.display = 'none';
+                
+                conectar(token);
             }
         };
 
-        function conectarComToken(token) {
-            const ws = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`);
-            ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
+        function conectar(token) {
+            const ws = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${MEU_APP_ID}`);
+            
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ authorize: token }));
+            };
+
             ws.onmessage = (msg) => {
                 const res = JSON.parse(msg.data);
+                
+                if (res.error) {
+                    const statusDiv = document.getElementById('status');
+                    statusDiv.innerText = "Erro: " + res.error.message;
+                    statusDiv.className = "error";
+                }
+
                 if (res.msg_type === 'authorize' && !res.error) {
-                    document.getElementById('info').innerText = "CONECTADO: " + res.authorize.email;
-                } else if (res.error) {
-                    document.getElementById('info').innerText = "Erro: " + res.error.message;
-                    document.getElementById('info').style.color = "#ff4444";
+                    document.getElementById('status').innerText = "CONECTADO: " + res.authorize.email;
+                    ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+                }
+
+                if (res.msg_type === 'balance') {
+                    document.getElementById('saldo').innerText = res.balance.currency + " " + res.balance.balance;
                 }
             };
         }
