@@ -5,36 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kubiko Trader</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0b0b0b; color: #ffffff; text-align: center; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { background: #161616; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #222; width: 320px; }
-        h1 { color: #ff4444; font-size: 28px; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase; }
-        p { color: #888; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
-        .btn-login { background: #ff4444; color: white; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.3s; }
-        #status { margin-top: 25px; font-size: 14px; font-weight: bold; word-break: break-all; }
+        body { font-family: 'Segoe UI', sans-serif; background: #06080d; color: #ffffff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .auth-card { background: #161d27; padding: 40px; border-radius: 8px; text-align: center; width: 350px; border: 1px solid #242e3a; }
+        h2 { font-size: 24px; margin-bottom: 15px; font-weight: bold; }
+        p { color: #9ca3af; font-size: 15px; line-height: 1.5; margin-bottom: 30px; }
+        .btn-main { background: #00e6eb; color: #000; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 20px; }
+        .link-create { color: #9ca3af; text-decoration: underline; font-size: 14px; cursor: pointer; display: block; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>KUBIKO TRADER</h1>
-        <p>Acesse sua conta Deriv para operar com segurança.</p>
-        <button class="btn-login" onclick="iniciarLogin()">ENTRAR COM DERIV</button>
-        <div id="status">Aguardando login...</div>
+
+    <div id="siteAuth" class="auth-card">
+        <h2>Authorization Required</h2>
+        <p>To perform operations and access exclusive resources, login or create your account.</p>
+        <button class="btn-main" onclick="iniciarLogin()">Login</button>
+        <span class="link-create">Create an account</span>
     </div>
+
     <script>
         const CLIENT_ID = '33h1f6Rj6AYZdwVVuiBzP'; 
-        const REDIRECT_URI = 'https://eu-bot-deriv-2.onrender.com';
+        const REDIRECT_URI = 'https://meu-bot-deriv-2.onrender.com';
+
         function iniciarLogin() {
             const encodedRedirect = encodeURIComponent(REDIRECT_URI);
             window.location.href = `https://oauth.deriv.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodedRedirect}&l=pt`;
         }
+
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
             const acct1 = urlParams.get('acct1');
-            const token1 = urlParams.get('token1');
-            if (acct1 || token1) {
-                const statusDiv = document.getElementById('status');
-                statusDiv.innerText = "Autorizado com sucesso! Conta: " + (acct1 || "Conectada");
-                statusDiv.style.color = "#00ff00";
+            if (acct1) {
+                document.getElementById('siteAuth').innerHTML = `<h2>Conectado</h2><p>Conta: ${acct1}</p>`;
             }
         };
     </script>
