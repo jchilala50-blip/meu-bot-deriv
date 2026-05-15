@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Bot Público</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 50px; }
+        input { padding: 10px; width: 80%; max-width: 300px; border-radius: 5px; border: none; margin: 10px; }
+        button { padding: 10px 20px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #status { margin-top: 20px; color: #00ff00; }
+    </style>
+</head>
+<body>
+    <h1>Robô de Negociação</h1>
+    <p>Insira o seu Token da Deriv para começar:</p>
+    <input type="password" id="userToken" placeholder="Cole o seu token aqui">
+    <br>
+    <button onclick="conectar()">Ligar Robô</button>
+    <div id="status">Status: Desconectado</div>
+
+    <script>
+        let ws;
+        function conectar() {
+            const token = document.getElementById('userToken').value;
+            if (!token) return alert("Insira um token!");
+
+            document.getElementById('status').innerText = "Conectando...";
+            ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ authorize: token }));
+            };
+
+            ws.onmessage = (msg) => {
+                const res = JSON.parse(msg.data);
+                if (res.msg_type === 'authorize') {
+                    if (res.error) {
+                        document.getElementById('status').innerText = "Erro: " + res.error.message;
+                    } else {
+                        document.getElementById('status').innerText = "Conectado como: " + res.authorize.email;
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>
