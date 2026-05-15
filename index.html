@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bot Profissional - Deriv</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; }
         .container { background: #1e1e1e; padding: 30px; border-radius: 15px; max-width: 400px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         input { padding: 12px; width: 90%; border-radius: 8px; border: 1px solid #333; background: #252525; color: white; margin-bottom: 15px; }
         button { padding: 12px 25px; background: #ff4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
-        button:hover { background: #cc3333; }
         #status { margin-top: 20px; font-weight: bold; padding: 10px; border-radius: 5px; }
         .success { color: #00ff00; background: rgba(0, 255, 0, 0.1); }
         .error { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
@@ -19,7 +18,7 @@
     <div class="container">
         <h1>Meu Bot Público</h1>
         <p>Insira seu Token da Deriv</p>
-        <input type="text" id="userToken" placeholder="Ex: a1b2c3d4e5f6g7h8">
+        <input type="text" id="userToken" placeholder="Cole seu token aqui">
         <button onclick="conectar()">AUTENTICAR CONTA</button>
         <div id="status">Status: Aguardando...</div>
         <div id="saldo" style="margin-top: 10px; font-size: 1.2em;"></div>
@@ -30,22 +29,15 @@
         function conectar() {
             const statusDiv = document.getElementById('status');
             const saldoDiv = document.getElementById('saldo');
-            // O .trim() remove espaços automaticamente se houver
             let token = document.getElementById('userToken').value.trim();
 
-            if (!token) {
-                alert("Por favor, cole um token válido.");
-                return;
-            }
+            if (!token) return alert("Cole o token primeiro!");
 
-            statusDiv.innerText = "Conectando ao servidor...";
-            statusDiv.className = "";
-            
-            // App_id 1089 é padrão. Se continuar dando erro, usaremos o seu próprio depois.
-            ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
+            statusDiv.innerText = "Conectando...";
+            // Usando app_id=1 para maior compatibilidade com tokens pessoais
+            ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1');
 
             ws.onopen = () => {
-                console.log("Conectado ao WS. Enviando authorize...");
                 ws.send(JSON.stringify({ authorize: token }));
             };
 
@@ -53,26 +45,19 @@
                 const res = JSON.parse(msg.data);
                 
                 if (res.error) {
-                    statusDiv.innerText = "Erro da Deriv: " + res.error.message;
+                    statusDiv.innerText = "Erro: " + res.error.message;
                     statusDiv.className = "error";
-                    console.log("Erro detalhado:", res.error);
                 }
 
                 if (res.msg_type === 'authorize' && !res.error) {
                     statusDiv.innerText = "CONECTADO: " + res.authorize.email;
                     statusDiv.className = "success";
-                    // Após logar, pede o saldo
                     ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
                 }
 
                 if (res.msg_type === 'balance') {
                     saldoDiv.innerText = "Saldo: " + res.balance.currency + " " + res.balance.balance;
                 }
-            };
-
-            ws.onclose = () => {
-                statusDiv.innerText = "Conexão encerrada.";
-                statusDiv.className = "";
             };
         }
     </script>
